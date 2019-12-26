@@ -1,0 +1,4 @@
+ffmpeg-4.1-win64-shared/
+venv/
+.vscode/launch.json
+.vscode/settings.json
