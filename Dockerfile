@@ -1,12 +1,17 @@
 FROM python:3-alpine
 
-RUN pip install --no-cache-dir youtube_dl
 RUN apk add ffmpeg
 
-RUN mkdir /var/downloads && chmod a+rw /var/downloads
-VOLUME ["/var/downloads"]
-WORKDIR /var/downloads
+WORKDIR /usr/src/app
 
-ENTRYPOINT [ "youtube-dl" ]
-CMD ["--help"]
+COPY requirements.txt ./
+
+RUN apk add --no-cache --virtual .build-deps gcc libffi-dev musl-dev openssl-dev && \
+    pip install --no-cache-dir -r requirements.txt && \
+    apk del .build-deps
+
+ENV TOKEN="changeme" MEDIADIR="/tmp/yttg" PROXY="{}" USERS="[]"
+COPY yttg_bot.py ./
+
+CMD ["python", "./yttg_bot.py"]
 
