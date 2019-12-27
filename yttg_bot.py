@@ -107,10 +107,7 @@ def bot_download(update, context):
 
 
 if __name__ == "__main__":
-    network = json.loads(os.environ["NETWORK"])
-    bot_token = os.environ["TOKEN"]
-
-    updater = Updater(token=bot_token, use_context=True, request_kwargs=network)
+    updater = Updater(token=os.environ["TOKEN"], use_context=True, request_kwargs={"proxy_url": os.environ["PROXY"]})
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(MessageHandler(Filters.text & (Filters.entity(MessageEntity.URL) | Filters.entity(MessageEntity.TEXT_LINK)), bot_download))
