@@ -18,17 +18,24 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.WARNING)
 
 
+CHATS = json.loads(os.environ["CHATS"])
 USERS = json.loads(os.environ["USERS"])
 
 
 def restricted(func):
     @wraps(func)
     def wrapped(update, context, *args, **kwargs):
-        user_id = update.effective_user.id
-        if user_id not in USERS:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="You are unathorized to use this bot")
-            print(f'Unauthorized access: {user_id}')
-            return
+        if update.effective_user:
+            user_id = update.effective_user.id
+            if user_id not in USERS:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="You are unathorized to use this bot")
+                print(f'Unauthorized user: {user_id}')
+                return
+        else:
+            chat_id = update.effective_chat.id
+            if chat_id not in CHATS:
+                print(f'Unauthorized chat: {chat_id}')
+                return
         return func(update, context, *args, **kwargs)
     return wrapped
 

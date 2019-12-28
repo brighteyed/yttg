@@ -10,7 +10,7 @@ RUN apk add --no-cache --virtual .build-deps gcc libffi-dev musl-dev openssl-dev
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build-deps
 
-ENV TOKEN="changeme" MEDIADIR="/tmp/yttg" PROXY="{}" USERS="[]"
+ENV TOKEN="changeme" MEDIADIR="/tmp/yttg" PROXY="{}" USERS="[]"  CHATS="[]"
 COPY yttg_bot.py ./
 
 CMD ["python", "./yttg_bot.py"]
