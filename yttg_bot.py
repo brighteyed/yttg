@@ -6,6 +6,7 @@ import socks
 import telegram
 import youtube_dl
 
+from dataclasses import dataclass
 from functools import wraps
 from telegram import MessageEntity
 from urllib.request import urlopen
@@ -44,6 +45,12 @@ class Error(Exception):
     pass
 
 
+@dataclass
+class FileInfo:
+    filename: str
+    title: str
+
+
 def download_audiofile(video_url):
     """Download audio for video_url and convert it into mp3 format"""
     
@@ -59,7 +66,7 @@ def download_audiofile(video_url):
     try:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)
-            return f'{os.path.splitext(ydl.prepare_filename(info))[0]}.m4a'
+            return FileInfo(f'{os.path.splitext(ydl.prepare_filename(info))[0]}.m4a', info['title'])
 
     except:
         return None
@@ -81,20 +88,20 @@ def bot_download(update, context):
         video_url = update.effective_message.text
         print(f'{download_audiofile.__name__}: url={video_url}')
 
-        filename = download_audiofile(video_url)
-        if not filename:
+        info = download_audiofile(video_url)
+        if not info:
             raise Error(f"Failed downloading [this]({video_url}) video")
 
-        size = os.path.getsize(filename)
+        size = os.path.getsize(info.filename)
         if size > 50000000:
-            os.remove(filename)
+            os.remove(info.filename)
             raise Error(f"Can not upload an audio file for [this]({video_url}) video because it is greater than 50Mb")
 
         try:
-            with open(filename, 'rb') as audio:
+            with open(info.filename, 'rb') as audio:
                 context.bot.send_audio(
                     chat_id=update.effective_chat.id,
-                    caption=f"Done! Here is an audio only version for [this]({video_url}) video",
+                    caption=f"{info.title}. Here is an audio only version for [this]({video_url}) video",
                     audio=audio,
                     parse_mode=telegram.ParseMode.MARKDOWN)
         except:
@@ -109,8 +116,8 @@ def bot_download(update, context):
         # Always delete "Downloading..." message
         context.bot.delete_message(chat_id=update.effective_chat.id, message_id=progress_msg.message_id)
         # Delete audio file if exists
-        if filename and os.path.exists(filename):
-            os.remove(filename)
+        if info.filename and os.path.exists(info.filename):
+            os.remove(info.filename)
 
 
 if __name__ == "__main__":
